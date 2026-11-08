@@ -1,5 +1,9 @@
 # DeepMicrobes
 
+> [!NOTE]
+> This repository is a fork of the [original DeepMicrobes project](https://github.com/MicrobeLab/DeepMicrobes)
+> modified to run with Tensorflow version 2.
+
 DeepMicrobes: taxonomic classification for metagenomics with deep learning <br>
 Supplementary data for the paper is available at https://github.com/MicrobeLab/DeepMicrobes-data <br>
 <b>IMPORTANT: The new DeepMicrobes (beta version) is available now. Please feel free to contact us if you have any suggestions or encounter any errors.</b>
@@ -20,7 +24,7 @@ Supplementary data for the paper is available at https://github.com/MicrobeLab/D
 ## Contact
 
 Any issues with the DeepMicrobes framework can be filed with [GitHub issue tracker](https://github.com/MicrobeLab/DeepMicrobes/issues).
-We are committed to maintain this repository to assist users and tackle errors. 
+We are committed to maintain this repository to assist users and tackle errors.
 
 <b>Email</b>
 * liangqx7@mail2.sysu.edu.cn (Qiaoxing Liang)
