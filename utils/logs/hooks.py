@@ -25,7 +25,7 @@ import tensorflow as tf  # pylint: disable=g-bad-import-order
 from utils.logs import logger
 
 
-class ExamplesPerSecondHook(tf.train.SessionRunHook):
+class ExamplesPerSecondHook(tf.compat.v1.train.SessionRunHook):
   """Hook to print out examples per second.
 
   Total time is tracked and then divided by the total number of steps
@@ -66,17 +66,12 @@ class ExamplesPerSecondHook(tf.train.SessionRunHook):
 
     self._logger = metric_logger or logger.BaseBenchmarkLogger()
 
-    self._timer = tf.train.SecondOrStepTimer(
+    self._timer = tf.compat.v1.train.SecondOrStepTimer(
         every_steps=every_n_steps, every_secs=every_n_secs)
-
-    self._step_train_time = 0
-    self._total_steps = 0
-    self._batch_size = batch_size
-    self._warm_steps = warm_steps
 
   def begin(self):
     """Called once before using the session to check global step."""
-    self._global_step_tensor = tf.train.get_global_step()
+    self._global_step_tensor = tf.compat.v1.train.get_global_step()
     if self._global_step_tensor is None:
       raise RuntimeError(
           "Global step should be created to use StepCounterHook.")
@@ -90,7 +85,7 @@ class ExamplesPerSecondHook(tf.train.SessionRunHook):
     Returns:
       A SessionRunArgs object or None if never triggered.
     """
-    return tf.train.SessionRunArgs(self._global_step_tensor)
+    return tf.compat.v1.train.SessionRunArgs(self._global_step_tensor)
 
   def after_run(self, run_context, run_values):  # pylint: disable=unused-argument
     """Called after each call to run().

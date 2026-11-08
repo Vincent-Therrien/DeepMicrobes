@@ -21,21 +21,21 @@ def input_function_train_kmer(input_tfrec, repeat_count, batch_size, cpus):
     def _parse_function(serialized):
         features = \
             {
-                'read': tf.VarLenFeature(tf.int64),
-                'label': tf.FixedLenSequenceFeature([], tf.int64, allow_missing=True)
+                'read': tf.compat.v1.VarLenFeature(tf.int64),
+                'label': tf.compat.v1.FixedLenSequenceFeature([], tf.int64, allow_missing=True)
             }
-        parsed_example = tf.parse_single_example(
+        parsed_example = tf.compat.v1.parse_single_example(
             serialized=serialized, features=features)
         read = parsed_example['read']
         label = parsed_example['label']
-        read = tf.sparse_tensor_to_dense(read)
+        read = tf.sparse.to_dense(read)
         d = read, label
         return d
 
     files = tf.data.Dataset.list_files(input_tfrec)
-    dataset = files.apply(tf.contrib.data.parallel_interleave(
-        tf.data.TFRecordDataset, cycle_length=cpus))
-    dataset = dataset.apply(tf.contrib.data.shuffle_and_repeat(
+    dataset = files.interleave(
+        lambda x: tf.data.TFRecordDataset(x), cycle_length=cpus, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(
         buffer_size=batch_size * 5, count=repeat_count))
     dataset = dataset.map(map_func=_parse_function, num_parallel_calls=cpus)
     dataset = dataset.padded_batch(batch_size=batch_size,
@@ -67,21 +67,21 @@ def input_function_train_kmer_pad_to_fixed_len(input_tfrec, repeat_count, batch_
     def _parse_function(serialized):
         features = \
             {
-                'read': tf.VarLenFeature(tf.int64),
-                'label': tf.FixedLenSequenceFeature([], tf.int64, allow_missing=True)
+                'read': tf.compat.v1.VarLenFeature(tf.int64),
+                'label': tf.compat.v1.FixedLenSequenceFeature([], tf.int64, allow_missing=True)
             }
-        parsed_example = tf.parse_single_example(
+        parsed_example = tf.compat.v1.parse_single_example(
             serialized=serialized, features=features)
         read = parsed_example['read']
         label = parsed_example['label']
-        read = tf.sparse_tensor_to_dense(read)
+        read = tf.spare.to_dense(read)
         d = read, label
         return d
 
     files = tf.data.Dataset.list_files(input_tfrec)
-    dataset = files.apply(tf.contrib.data.parallel_interleave(
-        tf.data.TFRecordDataset, cycle_length=cpus))
-    dataset = dataset.apply(tf.contrib.data.shuffle_and_repeat(
+    dataset = files.interleave(
+        lambda x: tf.data.TFRecordDataset(x), cycle_length=cpus, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(
         buffer_size=batch_size * 5, count=repeat_count))
     dataset = dataset.map(map_func=_parse_function, num_parallel_calls=cpus)
     dataset = dataset.padded_batch(batch_size=batch_size,
@@ -109,18 +109,18 @@ def input_function_predict_kmer(input_tfrec, batch_size, cpus):
     def _parse_function(serialized):
         features = \
             {
-                'read': tf.VarLenFeature(tf.int64)
+                'read': tf.compat.v1.VarLenFeature(tf.int64)
             }
-        parsed_example = tf.parse_single_example(
+        parsed_example = tf.compat.v1.parse_single_example(
             serialized=serialized, features=features)
         read = parsed_example['read']
-        read = tf.sparse_tensor_to_dense(read)
+        read = tf.sparse.to_dense(read)
         d = read
         return d
 
     files = tf.data.Dataset.list_files(input_tfrec)
-    dataset = files.apply(tf.contrib.data.parallel_interleave(
-        tf.data.TFRecordDataset, cycle_length=cpus))
+    dataset = files.interleave(
+        lambda x: tf.data.TFRecordDataset(x), cycle_length=cpus, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.map(map_func=_parse_function, num_parallel_calls=cpus)
     dataset = dataset.padded_batch(batch_size=batch_size,
                                    padded_shapes=(
@@ -150,18 +150,18 @@ def input_function_predict_kmer_pad_to_fixed_len(input_tfrec, batch_size, cpus,
     def _parse_function(serialized):
         features = \
             {
-                'read': tf.VarLenFeature(tf.int64)
+                'read': tf.compat.v1.VarLenFeature(tf.int64)
             }
-        parsed_example = tf.parse_single_example(
+        parsed_example = tf.compat.v1.parse_single_example(
             serialized=serialized, features=features)
         read = parsed_example['read']
-        read = tf.sparse_tensor_to_dense(read)
+        read = tf.sparse.to_dense(read)
         d = read
         return d
 
     files = tf.data.Dataset.list_files(input_tfrec)
-    dataset = files.apply(tf.contrib.data.parallel_interleave(
-        tf.data.TFRecordDataset, cycle_length=cpus))
+    dataset = files.interleave(
+        lambda x: tf.data.TFRecordDataset(x), cycle_length=cpus, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.map(map_func=_parse_function, num_parallel_calls=cpus)
     dataset = dataset.padded_batch(batch_size=batch_size,
                                    padded_shapes=(
@@ -201,9 +201,9 @@ def input_function_train_one_hot(input_tfrec, repeat_count, batch_size, cpus, ma
         return d
 
     files = tf.data.Dataset.list_files(input_tfrec)
-    dataset = files.apply(tf.contrib.data.parallel_interleave(
-        tf.data.TFRecordDataset, cycle_length=cpus))
-    dataset = dataset.apply(tf.contrib.data.shuffle_and_repeat(
+    dataset = files.interleave(
+        lambda x: tf.data.TFRecordDataset(x), cycle_length=cpus, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(
         buffer_size=batch_size * 5, count=repeat_count))
     dataset = dataset.map(map_func=_parse_function, num_parallel_calls=cpus)
     dataset = dataset.padded_batch(batch_size=batch_size,
@@ -241,8 +241,8 @@ def input_function_predict_one_hot(input_tfrec, batch_size, cpus, max_len):
         return d
 
     files = tf.data.Dataset.list_files(input_tfrec)
-    dataset = files.apply(tf.contrib.data.parallel_interleave(
-        tf.data.TFRecordDataset, cycle_length=cpus))
+    dataset = files.interleave(
+        lambda x: tf.data.TFRecordDataset(x), cycle_length=cpus, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.map(map_func=_parse_function, num_parallel_calls=cpus)
     dataset = dataset.padded_batch(batch_size=batch_size,
                                    padded_shapes=(

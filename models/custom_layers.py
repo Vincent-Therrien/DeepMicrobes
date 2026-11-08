@@ -2,8 +2,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-import tensorflow.contrib.slim as slim
+import tensorflow.compat.v1 as tf
+try:
+    import tf_slim as slim
+except ImportError:
+    import tensorflow.compat.v1.contrib.slim as slim
 
 
 def embedding_layer(inputs, vocab_size, embedding_dim, initializer):
@@ -21,7 +24,7 @@ def bidirectional_lstm(inputs, lstm_dim, length_list, batch_size, initializer):
 
     for direction in ["forward", "backward"]:
         with tf.variable_scope(direction):
-            lstm_cell[direction] = tf.contrib.rnn.CoupledInputForgetGateLSTMCell(
+            lstm_cell[direction] = tf.compat.v1.nn.rnn_cell.LSTMCell(
                 lstm_dim, forget_bias=1.0, initializer=initializer,
                 state_is_tuple=True)
             initial_cell_state = tf.get_variable("initial_cell_state",
@@ -34,7 +37,7 @@ def bidirectional_lstm(inputs, lstm_dim, length_list, batch_size, initializer):
                                                    initializer=initializer)
             c_states = tf.tile(initial_cell_state, tf.stack([batch_size, 1]))
             h_states = tf.tile(initial_output_state, tf.stack([batch_size, 1]))
-            initial_state[direction] = tf.contrib.rnn.LSTMStateTuple(c_states, h_states)
+            initial_state[direction] = tf.compat.v1.nn.rnn_cell.LSTMStateTuple(c_states, h_states)
 
     (outputs_forward, outputs_backward), final_states = tf.nn.bidirectional_dynamic_rnn(
         lstm_cell["forward"], lstm_cell["backward"], inputs,

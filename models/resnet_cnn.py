@@ -2,8 +2,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-import tensorflow.contrib.slim as slim
+import tensorflow.compat.v1 as tf
+try:
+    import tf_slim as slim
+except ImportError:
+    import tensorflow.compat.v1.contrib.slim as slim
 from models.custom_layers import dense_block
 
 

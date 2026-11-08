@@ -10,6 +10,15 @@ from absl import app as absl_app
 
 import numpy as np
 import tensorflow as tf
+import tensorflow.compat.v1 as tf_v1
+try:
+    import tensorflow.compat.v1.estimator as estimator
+except ImportError:
+    try:
+        import tensorflow_estimator as estimator
+    except ImportError:
+        import tensorflow_estimator.python.estimator as estimator
+tf_v1.disable_v2_behavior()
 
 from models import embed_pool, embed_cnn, cnn_lstm, resnet_cnn, \
     embed_lstm, embed_lstm_attention, seq2species
@@ -105,40 +114,40 @@ def model_fn(features, labels, mode, params):
         'probabilities': tf.nn.softmax(logits)
     }
 
-    if mode == tf.estimator.ModeKeys.PREDICT:
+    if mode == estimator.ModeKeys.PREDICT:
         # Return the predictions and the specification for serving a SavedModel
-        return tf.estimator.EstimatorSpec(
+        return estimator.EstimatorSpec(
             mode=mode,
             predictions=predictions,
             export_outputs={
-                'predict': tf.estimator.export.PredictOutput(predictions)
+                'predict': estimator.export.PredictOutput(predictions)
             })
 
-    loss = tf.losses.sparse_softmax_cross_entropy(
+    loss = tf.compat.v1.losses.sparse_softmax_cross_entropy(
         logits=logits, labels=labels)
 
     # Create a tensor named cross_entropy for logging purposes.
     tf.identity(loss, name='cross_entropy')
     tf.summary.scalar('cross_entropy', loss)
 
-    if mode == tf.estimator.ModeKeys.TRAIN:
-        global_step = tf.train.get_or_create_global_step()
+    if mode == estimator.ModeKeys.TRAIN:
+        global_step = tf.compat.v1.train.get_or_create_global_step()
 
-        learning_rate = tf.train.exponential_decay(params['lr'], global_step, 400000,
+        learning_rate = tf.compat.v1.train.exponential_decay(params['lr'], global_step, 400000,
                                                    params['lr_decay'], staircase=False)
 
         # Create a tensor named learning_rate for logging purposes
         tf.identity(learning_rate, name='learning_rate')
         tf.summary.scalar('learning_rate', learning_rate)
 
-        optimizer = tf.train.AdamOptimizer(learning_rate)
+        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate)
         minimize_op = optimizer.minimize(loss, global_step)
-        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        train_op = tf.group(minimize_op, update_ops)
+        update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS)
+        train_op = tf.compat.v1.group(minimize_op, update_ops)
     else:
         train_op = None
 
-    accuracy = tf.metrics.accuracy(labels, predictions['classes'])
+    accuracy = tf.compat.v1.metrics.accuracy(labels, predictions['classes'])
 
     metrics = {'accuracy': accuracy}
 
@@ -146,7 +155,7 @@ def model_fn(features, labels, mode, params):
     tf.identity(accuracy[1], name='train_accuracy')
     tf.summary.scalar('train_accuracy', accuracy[1])
 
-    return tf.estimator.EstimatorSpec(
+    return estimator.EstimatorSpec(
         mode=mode,
         predictions=predictions,
         loss=loss,
@@ -155,9 +164,9 @@ def model_fn(features, labels, mode, params):
 
 
 def train(flags_obj, model_function, dataset_name):
-    run_config = tf.estimator.RunConfig(save_checkpoints_steps=100000, keep_checkpoint_max=1000)
+    run_config = estimator.RunConfig(save_checkpoints_steps=10000, keep_checkpoint_max=1000)
 
-    classifier = tf.estimator.Estimator(
+    classifier = estimator.Estimator(
         model_fn=model_function, model_dir=flags_obj.model_dir, config=run_config,
         params={
             'num_classes': flags_obj.num_classes,
@@ -216,7 +225,7 @@ def train(flags_obj, model_function, dataset_name):
 
 def evaluate(flags_obj, model_function):
 
-    classifier = tf.estimator.Estimator(
+    classifier = estimator.Estimator(
         model_fn=model_function, model_dir=flags_obj.model_dir,
         params={
             'num_classes': flags_obj.num_classes,
@@ -264,7 +273,7 @@ def evaluate(flags_obj, model_function):
 
 def predict(flags_obj, model_function):
 
-    classifier = tf.estimator.Estimator(
+    classifier = estimator.Estimator(
         model_fn=model_function, model_dir=flags_obj.model_dir,
         params={
             'num_classes': flags_obj.num_classes,
@@ -357,7 +366,7 @@ def main(_):
         train(flags.FLAGS, model_fn, 'dataset_name')
 
 if __name__ == "__main__":
-    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
     universal_flags()
     model_specific_flags_embed_cnn()
     model_specific_flags_embed_lstm()

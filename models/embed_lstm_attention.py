@@ -20,45 +20,45 @@ class EmbedAttention(object):
         self.keep_prob = keep_prob
 
     def __call__(self, inputs):
-        initializer = tf.contrib.layers.xavier_initializer()
+        initializer = tf.compat.v1.keras.initializers.glorot_uniform()
 	
         length_list, length_max, batch_size = batch_stat_for_kmer_encoding(inputs)
 
-        with tf.variable_scope("token_embedding"):
+        with tf.compat.v1.variable_scope("token_embedding"):
             inputs = embedding_layer(inputs, self.vocab_size,
                                      self.embedding_dim, initializer)
 
         #length_list, length_max, batch_size = batch_stat(inputs)
 
-        with tf.variable_scope("token_lstm"):
+        with tf.compat.v1.variable_scope("token_lstm"):
             inputs = bidirectional_lstm(inputs, self.lstm_dim, length_list,
                                         batch_size, initializer)
 
-        with tf.variable_scope("attention"):
+        with tf.compat.v1.variable_scope("attention"):
             inputs = attention_layer(inputs, self.lstm_dim, self.da,
                                      self.row, length_max, initializer)
 
-        with tf.variable_scope("layer_ReLU_1"):
+        with tf.compat.v1.variable_scope("layer_ReLU_1"):
             inputs = tf.reshape(inputs, shape=[-1, self.row * 2 * self.lstm_dim])
-            w_relu_1 = tf.get_variable("w_relu_1",
+            w_relu_1 = tf.compat.v1.get_variable("w_relu_1",
                                        shape=[self.row * 2 * self.lstm_dim, self.mlp_dim],
                                        initializer=initializer)
             b_relu_1 = tf.Variable(tf.constant(0.0, shape=[self.mlp_dim]))
-            inputs = tf.nn.relu(tf.nn.xw_plus_b(inputs, w_relu_1, b_relu_1))
-            inputs = tf.nn.dropout(inputs, self.keep_prob)
+            inputs = tf.compat.v1.nn.relu(tf.compat.v1.nn.xw_plus_b(inputs, w_relu_1, b_relu_1))
+            inputs = tf.compat.v1.nn.dropout(inputs, self.keep_prob)
 
-        with tf.variable_scope("layer_ReLU_2"):
-            w_relu_2 = tf.get_variable("w_relu_2", shape=[self.mlp_dim, self.mlp_dim],
+        with tf.compat.v1.variable_scope("layer_ReLU_2"):
+            w_relu_2 = tf.compat.v1.get_variable("w_relu_2", shape=[self.mlp_dim, self.mlp_dim],
                                        initializer=initializer)
             b_relu_2 = tf.Variable(tf.constant(0.0, shape=[self.mlp_dim]))
-            inputs = tf.nn.relu(tf.nn.xw_plus_b(inputs, w_relu_2, b_relu_2))
-            inputs = tf.nn.dropout(inputs, self.keep_prob)
+            inputs = tf.compat.v1.nn.relu(tf.compat.v1.nn.xw_plus_b(inputs, w_relu_2, b_relu_2))
+            inputs = tf.compat.v1.nn.dropout(inputs, self.keep_prob)
 
-        with tf.variable_scope("layer_output"):
-            w_output = tf.get_variable("w_output",
+        with tf.compat.v1.variable_scope("layer_output"):
+            w_output = tf.compat.v1.get_variable("w_output",
                                        shape=[self.mlp_dim, self.num_classes],
                                        initializer=initializer)
             b_output = tf.Variable(tf.constant(0.0, shape=[self.num_classes]))
-            logits = tf.nn.xw_plus_b(inputs, w_output, b_output)
+            logits = tf.compat.v1.nn.xw_plus_b(inputs, w_output, b_output)
 
         return logits

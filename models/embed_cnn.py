@@ -19,7 +19,7 @@ class EmbedCNN(object):
         self.input_len = max_len - kmer + 1
 
     def __call__(self, inputs):
-        initializer = tf.contrib.layers.xavier_initializer()
+        initializer = tf.compat.v1.keras.initializers.glorot_uniform()
         inputs = embedding_layer(inputs, self.vocab_size, self.embedding_dim,
                                  initializer)
         inputs = tf.expand_dims(inputs, axis=-1)
@@ -90,7 +90,7 @@ class EmbedCNNnoPool(object):
         self.input_len = max_len - kmer + 1
 
     def __call__(self, inputs):
-        initializer = tf.contrib.layers.xavier_initializer()
+        initializer = tf.compat.v1.keras.initializers.glorot_uniform()
         inputs = embedding_layer(inputs, self.vocab_size, self.embedding_dim,
                                  initializer)
         inputs = tf.expand_dims(inputs, axis=-1)

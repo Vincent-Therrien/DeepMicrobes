@@ -97,7 +97,7 @@ class BaseBenchmarkLogger(object):
       eval_results: dict, the result of evaluate.
     """
     if not isinstance(eval_results, dict):
-      tf.logging.warning("eval_results should be dictionary for logging. "
+      tf.compat.v1.logging.warning("eval_results should be dictionary for logging. "
                          "Got %s", type(eval_results))
       return
     global_step = eval_results[tf.GraphKeys.GLOBAL_STEP]
@@ -121,10 +121,10 @@ class BaseBenchmarkLogger(object):
     """
     metric = _process_metric_to_json(name, value, unit, global_step, extras)
     if metric:
-      tf.logging.info("Benchmark metric: %s", metric)
+      tf.compat.v1.logging.info("Benchmark metric: %s", metric)
 
   def log_run_info(self, model_name, dataset_name, run_params):
-    tf.logging.info("Benchmark run: %s",
+      tf.compat.v1.logging.info("Benchmark run: %s",
                     _gather_run_info(model_name, dataset_name, run_params))
 
 
@@ -159,7 +159,7 @@ class BenchmarkFileLogger(BaseBenchmarkLogger):
           json.dump(metric, f)
           f.write("\n")
         except (TypeError, ValueError) as e:
-          tf.logging.warning("Failed to dump metric to log file: "
+          tf.compat.v1.logging.warning("Failed to dump metric to log file: "
                              "name %s, value %s, error %s", name, value, e)
 
   def log_run_info(self, model_name, dataset_name, run_params):
@@ -181,7 +181,7 @@ class BenchmarkFileLogger(BaseBenchmarkLogger):
         json.dump(run_info, f)
         f.write("\n")
       except (TypeError, ValueError) as e:
-        tf.logging.warning("Failed to dump benchmark run info to log file: %s",
+        tf.compat.v1.logging.warning("Failed to dump benchmark run info to log file: %s",
                            e)
 
 
@@ -269,7 +269,7 @@ def _process_metric_to_json(
     name, value, unit=None, global_step=None, extras=None):
   """Validate the metric data and generate JSON for insert."""
   if not isinstance(value, numbers.Number):
-    tf.logging.warning(
+    tf.compat.v1.logging.warning(
         "Metric value to log should be a number. Got %s", type(value))
     return None
 
@@ -286,7 +286,8 @@ def _process_metric_to_json(
 
 def _collect_tensorflow_info(run_info):
   run_info["tensorflow_version"] = {
-      "version": tf.VERSION, "git_hash": tf.GIT_VERSION}
+      "version": getattr(tf, "__version__", tf.VERSION if hasattr(tf, "VERSION") else "unknown"),
+      "git_hash": getattr(tf, "__git_version__", getattr(tf, "GIT_VERSION", "unknown"))}
 
 
 def _collect_run_params(run_info, run_params):
@@ -330,7 +331,7 @@ def _collect_cpu_info(run_info):
 
     run_info["machine_config"]["cpu_info"] = cpu_info
   except ImportError:
-    tf.logging.warn("'cpuinfo' not imported. CPU info will not be logged.")
+    tf.compat.v1.logging.warn("'cpuinfo' not imported. CPU info will not be logged.")
 
 
 def _collect_gpu_info(run_info):
@@ -360,7 +361,7 @@ def _collect_memory_info(run_info):
     run_info["machine_config"]["memory_total"] = vmem.total
     run_info["machine_config"]["memory_available"] = vmem.available
   except ImportError:
-    tf.logging.warn("'psutil' not imported. Memory info will not be logged.")
+    tf.compat.v1.logging.warn("'psutil' not imported. Memory info will not be logged.")
 
 
 def _parse_gpu_model(physical_device_desc):
